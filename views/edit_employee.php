@@ -3,7 +3,7 @@ require_once '../auth.php';
 require_once '../conn.php';
 
 requireLogin();
-requireRole(['HR Head', 'HR Staff']);
+requireRole(['HR Head', 'HR Staff', 'Employee']);
 
 if (!isset($_GET['id'])) {
     header("Location: employee_list.php");
@@ -12,13 +12,19 @@ if (!isset($_GET['id'])) {
 
 $id = $_GET['id'];
 
+// Access Control: Employees can only edit their own profile
+if ($_SESSION['role'] == 'Employee' && $_SESSION['employee_id'] != $id) {
+    die("<h1>Access Denied</h1><p>You can only edit your own profile.</p>");
+}
+
 // Fetch Employee Data
 $sql = "SELECT e.*, 
-        d.iddepartments, 
-        p.idjob_positions, 
-        c.idcontract_types,
+        d.iddepartments, d.dept_name,
+        p.idjob_positions, p.job_category,
+        c.idcontract_types, c.contract_classification,
         sr.appointment_start_date,
-        sr.appointment_end_date
+        sr.appointment_end_date,
+        sr.monthly_salary
         FROM employees e 
         LEFT JOIN employees_unitassignments eu ON e.idemployees = eu.employees_idemployees
         LEFT JOIN departments d ON eu.departments_iddepartments = d.iddepartments
@@ -95,7 +101,7 @@ $relatives = $stmt_rel->get_result();
             div.innerHTML = `
                 <input type="text" name="edu_school[]" placeholder="School Name" required>
                 <input type="text" name="edu_degree[]" placeholder="Degree" required>
-                <input type="number" name="edu_year[]" placeholder="Year Graduated" required>
+                <input type="number" name="edu_year[]" placeholder="Year Graduated">
                 <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
@@ -155,10 +161,6 @@ $relatives = $stmt_rel->get_result();
                     <div class="form-group">
                         <label>Last Name</label>
                         <input type="text" name="last_name" value="<?php echo htmlspecialchars($employee['last_name']); ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" name="address" value="<?php echo htmlspecialchars($employee['res_spec_address']); ?>" required>
                     </div>
                     <div class="form-group">
                         <label>Contact Number</label>
@@ -268,44 +270,78 @@ $relatives = $stmt_rel->get_result();
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Department</label>
-                        <select name="department_id" required>
-                            <option value="">Select Department</option>
-                            <?php while($row = $departments->fetch_assoc()): ?>
-                                <option value="<?php echo $row['iddepartments']; ?>" <?php echo ($row['iddepartments'] == $employee['iddepartments']) ? 'selected' : ''; ?>>
-                                    <?php echo $row['dept_name']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="text" value="<?php echo htmlspecialchars($employee['dept_name'] ?? 'N/A'); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="department_id" value="<?php echo $employee['iddepartments']; ?>">
+                        <?php else: ?>
+                            <select name="department_id" required>
+                                <option value="">Select Department</option>
+                                <?php while($row = $departments->fetch_assoc()): ?>
+                                    <option value="<?php echo $row['iddepartments']; ?>" <?php echo ($row['iddepartments'] == $employee['iddepartments']) ? 'selected' : ''; ?>>
+                                        <?php echo $row['dept_name']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>Position</label>
-                        <select name="position_id" required>
-                            <option value="">Select Position</option>
-                            <?php while($row = $positions->fetch_assoc()): ?>
-                                <option value="<?php echo $row['idjob_positions']; ?>" <?php echo ($row['idjob_positions'] == $employee['idjob_positions']) ? 'selected' : ''; ?>>
-                                    <?php echo $row['job_category']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="text" value="<?php echo htmlspecialchars($employee['job_category'] ?? 'N/A'); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="position_id" value="<?php echo $employee['idjob_positions']; ?>">
+                        <?php else: ?>
+                            <select name="position_id" required>
+                                <option value="">Select Position</option>
+                                <?php while($row = $positions->fetch_assoc()): ?>
+                                    <option value="<?php echo $row['idjob_positions']; ?>" <?php echo ($row['idjob_positions'] == $employee['idjob_positions']) ? 'selected' : ''; ?>>
+                                        <?php echo $row['job_category']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Salary</label>
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="number" step="0.01" value="<?php echo htmlspecialchars($employee['monthly_salary'] ?? '0.00'); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="monthly_salary" value="<?php echo $employee['monthly_salary']; ?>">
+                        <?php else: ?>
+                            <input type="number" step="0.01" name="monthly_salary" value="<?php echo htmlspecialchars($employee['monthly_salary'] ?? '0.00'); ?>" required>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>Contract Type</label>
-                        <select name="contract_type_id" required>
-                            <option value="">Select Contract Type</option>
-                            <?php while($row = $contract_types->fetch_assoc()): ?>
-                                <option value="<?php echo $row['idcontract_types']; ?>" <?php echo ($row['idcontract_types'] == $employee['idcontract_types']) ? 'selected' : ''; ?>>
-                                    <?php echo $row['contract_classification']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="text" value="<?php echo htmlspecialchars($employee['contract_classification'] ?? 'N/A'); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="contract_type_id" value="<?php echo $employee['idcontract_types']; ?>">
+                        <?php else: ?>
+                            <select name="contract_type_id" required>
+                                <option value="">Select Contract Type</option>
+                                <?php while($row = $contract_types->fetch_assoc()): ?>
+                                    <option value="<?php echo $row['idcontract_types']; ?>" <?php echo ($row['idcontract_types'] == $employee['idcontract_types']) ? 'selected' : ''; ?>>
+                                        <?php echo $row['contract_classification']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>Date Hired / Start Date</label>
-                        <input type="date" name="date_hired" value="<?php echo htmlspecialchars($employee['appointment_start_date'] ?? ''); ?>" required>
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="date" value="<?php echo htmlspecialchars($employee['appointment_start_date'] ?? ''); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="date_hired" value="<?php echo $employee['appointment_start_date']; ?>">
+                        <?php else: ?>
+                            <input type="date" name="date_hired" value="<?php echo htmlspecialchars($employee['appointment_start_date'] ?? ''); ?>" required>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>End of Contract / End Date</label>
-                        <input type="date" name="appointment_end_date" value="<?php echo htmlspecialchars($employee['appointment_end_date'] ?? ''); ?>">
+                        <?php if ($_SESSION['role'] == 'Employee'): ?>
+                            <input type="date" value="<?php echo htmlspecialchars($employee['appointment_end_date'] ?? ''); ?>" readonly style="background-color: #e9ecef;">
+                            <input type="hidden" name="appointment_end_date" value="<?php echo $employee['appointment_end_date']; ?>">
+                        <?php else: ?>
+                            <input type="date" name="appointment_end_date" value="<?php echo htmlspecialchars($employee['appointment_end_date'] ?? ''); ?>">
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -317,7 +353,7 @@ $relatives = $stmt_rel->get_result();
                         <div class="dynamic-row">
                             <input type="text" name="edu_school[]" value="<?php echo htmlspecialchars($row['institution_name']); ?>" placeholder="School Name" required>
                             <input type="text" name="edu_degree[]" value="<?php echo htmlspecialchars($row['Education_degree']); ?>" placeholder="Degree" required>
-                            <input type="number" name="edu_year[]" value="<?php echo htmlspecialchars($row['year_graduated']); ?>" placeholder="Year Graduated" required>
+                            <input type="number" name="edu_year[]" value="<?php echo intval($row['year_graduated']); ?>" placeholder="Year Graduated">
                             <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
                         </div>
                     <?php endwhile; ?>
@@ -342,7 +378,11 @@ $relatives = $stmt_rel->get_result();
 
             <div class="form-actions">
                 <button type="submit" class="btn-primary">Update Record</button>
-                <a href="employee_list.php" class="btn-secondary">Cancel</a>
+                <?php if ($_SESSION['role'] == 'Employee'): ?>
+                    <a href="view_employee.php?id=<?php echo $id; ?>" class="btn-secondary">Cancel</a>
+                <?php else: ?>
+                    <a href="employee_list.php" class="btn-secondary">Cancel</a>
+                <?php endif; ?>
             </div>
         </form>
     </div>

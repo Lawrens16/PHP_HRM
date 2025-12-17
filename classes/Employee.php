@@ -312,7 +312,7 @@ class Employee {
             // Service Record (Current)
             $stmt = $this->conn->prepare("INSERT INTO service_records (employees_idemployees, job_positions_idjob_positions, contract_types_idcontract_types, appointment_start_date, appointment_end_date, institutions_idinstitutions, monthly_salary, pay_grade, gov_service) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $instId = 0; // Default for internal
-            $salary = 0.0;
+            $salary = !empty($data["monthly_salary"]) ? $data["monthly_salary"] : 0.0;
             $payGrade = "N/A";
             $gov = 1; // Assuming internal is gov
             $endDate = !empty($data["appointment_end_date"]) ? $data["appointment_end_date"] : "1900-01-01";

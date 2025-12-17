@@ -75,6 +75,16 @@ $relatives = $stmt_rel->get_result();
     </nav>
 
     <div class="container">
+        <?php
+        if (isset($_SESSION['error'])) {
+            echo '<div class="alert error">' . $_SESSION['error'] . '</div>';
+            unset($_SESSION['error']);
+        }
+        if (isset($_SESSION['success'])) {
+            echo '<div class="alert success">' . $_SESSION['success'] . '</div>';
+            unset($_SESSION['success']);
+        }
+        ?>
         <h2>Employee Details</h2>
         
         <div class="form-section">
@@ -136,11 +146,15 @@ $relatives = $stmt_rel->get_result();
             </table>
         </div>
         
-        <?php if ($_SESSION['role'] != 'Employee'): ?>
-            <a href="employee_list.php" class="btn-secondary">Back to List</a>
-        <?php else: ?>
-            <a href="../dashboard.php" class="btn-secondary">Back to Dashboard</a>
-        <?php endif; ?>
+        <div style="margin-top: 20px;">
+            <?php if ($_SESSION['role'] != 'Employee'): ?>
+                <a href="employee_list.php" class="btn-secondary">Back to List</a>
+            <?php else: ?>
+                <a href="../dashboard.php" class="btn-secondary">Back to Dashboard</a>
+            <?php endif; ?>
+            
+            <a href="edit_employee.php?id=<?php echo $id; ?>" class="btn-primary">Edit Profile</a>
+        </div>
     </div>
 </body>
 </html>
