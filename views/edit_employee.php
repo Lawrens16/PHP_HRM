@@ -1,0 +1,248 @@
+<?php
+require_once '../auth.php';
+require_once '../conn.php';
+
+requireLogin();
+requireRole(['HR Head', 'HR Staff']);
+
+if (!isset($_GET['id'])) {
+    header("Location: employee_list.php");
+    exit();
+}
+
+$id = $_GET['id'];
+
+// Fetch Employee Data
+$sql = "SELECT e.*, 
+        d.iddepartments, 
+        p.idjob_positions, 
+        c.idcontract_types,
+        sr.appointment_start_date,
+        sr.appointment_end_date
+        FROM employees e 
+        LEFT JOIN employees_unitassignments eu ON e.idemployees = eu.employees_idemployees
+        LEFT JOIN departments d ON eu.departments_iddepartments = d.iddepartments
+        LEFT JOIN service_records sr ON e.idemployees = sr.employees_idemployees
+        LEFT JOIN job_positions p ON sr.job_positions_idjob_positions = p.idjob_positions
+        LEFT JOIN contract_types c ON sr.contract_types_idcontract_types = c.idcontract_types
+        WHERE e.idemployees = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    die("Employee not found.");
+}
+
+$employee = $result->fetch_assoc();
+
+// Fetch Dropdown Options
+$departments = $conn->query("SELECT * FROM departments");
+$positions = $conn->query("SELECT * FROM job_positions");
+$contract_types = $conn->query("SELECT * FROM contract_types");
+
+// Fetch Education
+$sql_edu = "SELECT ee.*, i.institution_name 
+            FROM employees_education ee
+            JOIN institutions i ON ee.institutions_idinstitutions = i.idinstitutions
+            WHERE ee.employees_idemployees = ?";
+$stmt_edu = $conn->prepare($sql_edu);
+$stmt_edu->bind_param("i", $id);
+$stmt_edu->execute();
+$education = $stmt_edu->get_result();
+
+// Fetch Relatives
+// Updated: Select relationship from employees_relatives (er) instead of relatives (r)
+$sql_rel = "SELECT er.*, r.first_name, r.last_name, er.relationship, r.telephone 
+            FROM employees_relatives er
+            JOIN relatives r ON er.Relatives_idrelatives = r.idrelatives
+            WHERE er.employees_idemployees = ?";
+$stmt_rel = $conn->prepare($sql_rel);
+$stmt_rel->bind_param("i", $id);
+$stmt_rel->execute();
+$relatives = $stmt_rel->get_result();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Employee - HRMIS</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .dynamic-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .dynamic-row input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .dynamic-row button {
+            padding: 8px 15px;
+            white-space: nowrap;
+        }
+    </style>
+    <script>
+        function addEducation() {
+            const container = document.getElementById('education-container');
+            const div = document.createElement('div');
+            div.className = 'dynamic-row';
+            div.innerHTML = `
+                <input type="text" name="edu_school[]" placeholder="School Name" required>
+                <input type="text" name="edu_degree[]" placeholder="Degree" required>
+                <input type="number" name="edu_year[]" placeholder="Year Graduated" required>
+                <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addRelative() {
+            const container = document.getElementById('relatives-container');
+            const div = document.createElement('div');
+            div.className = 'dynamic-row';
+            div.innerHTML = `
+                <input type="text" name="rel_name[]" placeholder="Full Name" required>
+                <input type="text" name="rel_relationship[]" placeholder="Relationship" required>
+                <input type="text" name="rel_contact[]" placeholder="Contact Number" required>
+                <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">HRMIS</div>
+        <div class="links">
+            <a href="../dashboard.php">Dashboard</a>
+            <a href="../actions/logout.php">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Edit Employee Record</h2>
+        
+        <form action="../actions/update_employee.php" method="POST">
+            <input type="hidden" name="id" value="<?php echo $employee['idemployees']; ?>">
+            
+            <div class="form-section">
+                <h3>Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" value="<?php echo htmlspecialchars($employee['first_name']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Middle Name</label>
+                        <input type="text" name="middle_name" value="<?php echo htmlspecialchars($employee['middle_name']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" value="<?php echo htmlspecialchars($employee['last_name']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" name="address" value="<?php echo htmlspecialchars($employee['res_spec_address']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" name="contact_number" value="<?php echo htmlspecialchars($employee['contactno']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" value="<?php echo htmlspecialchars($employee['email']); ?>" required>
+                    </div>
+                    <!-- Date of Birth, Sex, Civil Status removed as columns do not exist -->
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Employment Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="department_id" required>
+                            <option value="">Select Department</option>
+                            <?php while($row = $departments->fetch_assoc()): ?>
+                                <option value="<?php echo $row['iddepartments']; ?>" <?php echo ($row['iddepartments'] == $employee['iddepartments']) ? 'selected' : ''; ?>>
+                                    <?php echo $row['dept_name']; ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <select name="position_id" required>
+                            <option value="">Select Position</option>
+                            <?php while($row = $positions->fetch_assoc()): ?>
+                                <option value="<?php echo $row['idjob_positions']; ?>" <?php echo ($row['idjob_positions'] == $employee['idjob_positions']) ? 'selected' : ''; ?>>
+                                    <?php echo $row['job_category']; ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contract Type</label>
+                        <select name="contract_type_id" required>
+                            <option value="">Select Contract Type</option>
+                            <?php while($row = $contract_types->fetch_assoc()): ?>
+                                <option value="<?php echo $row['idcontract_types']; ?>" <?php echo ($row['idcontract_types'] == $employee['idcontract_types']) ? 'selected' : ''; ?>>
+                                    <?php echo $row['contract_classification']; ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Hired / Start Date</label>
+                        <input type="date" name="date_hired" value="<?php echo htmlspecialchars($employee['appointment_start_date'] ?? ''); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End of Contract / End Date</label>
+                        <input type="date" name="appointment_end_date" value="<?php echo htmlspecialchars($employee['appointment_end_date'] ?? ''); ?>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Educational Background</h3>
+                <div id="education-container">
+                    <?php while($row = $education->fetch_assoc()): ?>
+                        <div class="dynamic-row">
+                            <input type="text" name="edu_school[]" value="<?php echo htmlspecialchars($row['institution_name']); ?>" placeholder="School Name" required>
+                            <input type="text" name="edu_degree[]" value="<?php echo htmlspecialchars($row['Education_degree']); ?>" placeholder="Degree" required>
+                            <input type="number" name="edu_year[]" value="<?php echo htmlspecialchars($row['year_graduated']); ?>" placeholder="Year Graduated" required>
+                            <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+                <button type="button" class="btn-secondary" onclick="addEducation()">+ Add Education</button>
+            </div>
+
+            <div class="form-section">
+                <h3>Family Background</h3>
+                <div id="relatives-container">
+                    <?php while($row = $relatives->fetch_assoc()): ?>
+                        <div class="dynamic-row">
+                            <input type="text" name="rel_name[]" value="<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?>" placeholder="Full Name" required>
+                            <input type="text" name="rel_relationship[]" value="<?php echo htmlspecialchars($row['relationship']); ?>" placeholder="Relationship" required>
+                            <input type="text" name="rel_contact[]" value="<?php echo htmlspecialchars($row['telephone']); ?>" placeholder="Contact Number" required>
+                            <button type="button" class="btn-danger" onclick="this.parentElement.remove()">Remove</button>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+                <button type="button" class="btn-secondary" onclick="addRelative()">+ Add Relative</button>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Update Record</button>
+                <a href="employee_list.php" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
