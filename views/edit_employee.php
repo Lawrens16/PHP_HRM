@@ -127,6 +127,17 @@ $relatives = $stmt_rel->get_result();
     <div class="container">
         <h2>Edit Employee Record</h2>
         
+        <?php
+        if (isset($_SESSION['error'])) {
+            echo '<div class="alert error">' . $_SESSION['error'] . '</div>';
+            unset($_SESSION['error']);
+        }
+        if (isset($_SESSION['success'])) {
+            echo '<div class="alert success">' . $_SESSION['success'] . '</div>';
+            unset($_SESSION['success']);
+        }
+        ?>
+
         <form action="../actions/update_employee.php" method="POST">
             <input type="hidden" name="id" value="<?php echo $employee['idemployees']; ?>">
             
@@ -157,9 +168,100 @@ $relatives = $stmt_rel->get_result();
                         <label>Email Address</label>
                         <input type="email" name="email" value="<?php echo htmlspecialchars($employee['email']); ?>" required>
                     </div>
-                    <!-- Date of Birth, Sex, Civil Status removed as columns do not exist -->
+                    
+                    <div class="form-group">
+                        <label>Name Extension</label>
+                        <input type="text" name="name_extension" value="<?php echo htmlspecialchars($employee['name_extension'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="birthdate" value="<?php echo htmlspecialchars($employee['birthdate']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Place of Birth (City/Mun)</label>
+                        <input type="text" name="birth_city" value="<?php echo htmlspecialchars($employee['birth_city'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Province of Birth</label>
+                        <input type="text" name="birth_province" value="<?php echo htmlspecialchars($employee['birth_province'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Country of Birth</label>
+                        <input type="text" name="birth_country" value="<?php echo htmlspecialchars($employee['birth_country'] ?? 'Philippines'); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Sex</label>
+                        <select name="sex" required>
+                            <option value="Male" <?php echo ($employee['sex'] == 'Male') ? 'selected' : ''; ?>>Male</option>
+                            <option value="Female" <?php echo ($employee['sex'] == 'Female') ? 'selected' : ''; ?>>Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Civil Status</label>
+                        <select name="civil_status" required>
+                            <option value="Single" <?php echo ($employee['civil_status'] == 'Single') ? 'selected' : ''; ?>>Single</option>
+                            <option value="Married" <?php echo ($employee['civil_status'] == 'Married') ? 'selected' : ''; ?>>Married</option>
+                            <option value="Widowed" <?php echo ($employee['civil_status'] == 'Widowed') ? 'selected' : ''; ?>>Widowed</option>
+                            <option value="Separated" <?php echo ($employee['civil_status'] == 'Separated') ? 'selected' : ''; ?>>Separated</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Height (m)</label>
+                        <input type="number" step="0.01" name="height" value="<?php echo htmlspecialchars($employee['height_in_meter'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" step="0.01" name="weight" value="<?php echo htmlspecialchars($employee['weight_in_kg'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Type</label>
+                        <input type="text" name="blood_type" value="<?php echo htmlspecialchars($employee['blood_type'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>GSIS No.</label>
+                        <input type="text" name="gsis_no" value="<?php echo htmlspecialchars($employee['gsis_no'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>SSS No.</label>
+                        <input type="text" name="sss_no" value="<?php echo htmlspecialchars($employee['sss_no'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>PhilHealth No.</label>
+                        <input type="text" name="philhealthno" value="<?php echo htmlspecialchars($employee['philhealthno'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>TIN</label>
+                        <input type="text" name="tin" value="<?php echo htmlspecialchars($employee['tin'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Citizenship</label>
+                        <input type="text" name="citizenship" value="<?php echo htmlspecialchars($employee['citizenship'] ?? 'Filipino'); ?>">
+                    </div>
                 </div>
             </div>
+
+            <div class="form-section">
+                <h3>Addresses</h3>
+                <h4>Residential</h4>
+                <div class="form-grid">
+                    <div class="form-group"><label>House/Block/Lot</label><input type="text" name="res_spec_address" value="<?php echo htmlspecialchars($employee['res_spec_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Street</label><input type="text" name="res_street_address" value="<?php echo htmlspecialchars($employee['res_street_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Village</label><input type="text" name="res_vill_address" value="<?php echo htmlspecialchars($employee['res_vill_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Barangay</label><input type="text" name="res_barangay_address" value="<?php echo htmlspecialchars($employee['res_barangay_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>City/Mun</label><input type="text" name="res_city" value="<?php echo htmlspecialchars($employee['res_city'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Province</label><input type="text" name="res_province" value="<?php echo htmlspecialchars($employee['res_province'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Zip Code</label><input type="text" name="res_zipcode" value="<?php echo htmlspecialchars($employee['res_zipcode'] ?? ''); ?>"></div>
+                </div>
+                <h4>Permanent</h4>
+                <div class="form-grid">
+                    <div class="form-group"><label>House/Block/Lot</label><input type="text" name="perm_spec_address" value="<?php echo htmlspecialchars($employee['perm_spec_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Street</label><input type="text" name="perm_street_address" value="<?php echo htmlspecialchars($employee['perm_street_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Village</label><input type="text" name="perm_vill_address" value="<?php echo htmlspecialchars($employee['perm_vill_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Barangay</label><input type="text" name="perm_barangay_address" value="<?php echo htmlspecialchars($employee['perm_barangay_address'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>City/Mun</label><input type="text" name="perm_city" value="<?php echo htmlspecialchars($employee['perm_city'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Province</label><input type="text" name="perm_province" value="<?php echo htmlspecialchars($employee['perm_province'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Zip Code</label><input type="text" name="perm_zipcode" value="<?php echo htmlspecialchars($employee['perm_zipcode'] ?? ''); ?>"></div>
+                </div>
 
             <div class="form-section">
                 <h3>Employment Details</h3>
