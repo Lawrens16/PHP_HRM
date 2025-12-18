@@ -16,11 +16,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("Access Denied: You can only update your own profile.");
         }
         
-        // Security: Prevent Employees from modifying sensitive fields
-        // Unset these fields from $_POST so they are not updated (or use existing values if logic requires)
-        // However, Employee::update expects all fields or uses defaults. 
-        // Better approach: Fetch current values for sensitive fields and overwrite $_POST
-        
         $current_emp_sql = "SELECT 
             sr.monthly_salary, 
             sr.job_positions_idjob_positions, 
