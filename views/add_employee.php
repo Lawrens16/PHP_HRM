@@ -83,6 +83,14 @@ requireRole(['HR Head', 'HR Staff']);
                         <input type="text" name="birth_city" placeholder="City/Municipality" required>
                     </div>
                     <div class="form-group">
+                        <label>Province of Birth</label>
+                        <input type="text" name="birth_province" placeholder="Province" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Country of Birth</label>
+                        <input type="text" name="birth_country" value="Philippines" required>
+                    </div>
+                    <div class="form-group">
                         <label>Sex</label>
                         <select name="sex" required>
                             <option value="">Select</option>

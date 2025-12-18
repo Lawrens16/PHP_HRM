@@ -121,6 +121,7 @@ class Employee {
             
             $defaults = [
                 "middle_name" => "", "name_extension" => "", "gsis_no" => "", "sss_no" => "", "philhealthno" => "",
+                "birth_province" => "", "birth_country" => "Philippines",
                 "res_spec_address" => "", "res_street_address" => "", "res_vill_address" => "", "res_municipality" => "",
                 "perm_spec_address" => "", "perm_street_address" => "", "perm_vill_address" => "", "perm_municipality" => "",
                 "telephone" => "", "email" => "",
@@ -218,6 +219,7 @@ class Employee {
             
             $defaults = [
                 "middle_name" => "", "name_extension" => "", "gsis_no" => "", "sss_no" => "", "philhealthno" => "",
+                "birth_province" => "", "birth_country" => "Philippines",
                 "res_spec_address" => "", "res_street_address" => "", "res_vill_address" => "", "res_municipality" => "",
                 "perm_spec_address" => "", "perm_street_address" => "", "perm_vill_address" => "", "perm_municipality" => "",
                 "telephone" => "", "email" => "",
