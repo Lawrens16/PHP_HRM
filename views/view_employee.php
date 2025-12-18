@@ -16,7 +16,7 @@ checkOwnership($id);
 
 // Fetch Employee Details
 // Join with unitassignments, departments, service_records, job_positions, contract_types
-$sql = "SELECT e.*, d.dept_name, p.job_category, c.contract_classification, sr.appointment_start_date, sr.appointment_end_date 
+$sql = "SELECT e.*, d.dept_name, p.job_category, c.contract_classification, sr.appointment_start_date, sr.appointment_end_date, sr.monthly_salary 
         FROM employees e 
         LEFT JOIN employees_unitassignments eu ON e.idemployees = eu.employees_idemployees
         LEFT JOIN departments d ON eu.departments_iddepartments = d.iddepartments
@@ -90,15 +90,67 @@ $relatives = $stmt_rel->get_result();
         <div class="form-section">
             <h3>Personal Information</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Name:</label> <?php echo $employee['first_name'] . ' ' . $employee['middle_name'] . ' ' . $employee['last_name']; ?></div>
-                <div class="form-group"><label>Address:</label> <?php echo $employee['res_spec_address']; ?></div>
-                <div class="form-group"><label>Contact:</label> <?php echo $employee['contactno']; ?></div>
-                <div class="form-group"><label>Email:</label> <?php echo $employee['email']; ?></div>
-                <div class="form-group"><label>Department:</label> <?php echo $employee['dept_name'] ?? 'N/A'; ?></div>
-                <div class="form-group"><label>Position:</label> <?php echo $employee['job_category'] ?? 'N/A'; ?></div>
-                <div class="form-group"><label>Contract:</label> <?php echo $employee['contract_classification'] ?? 'N/A'; ?></div>
-                <div class="form-group"><label>Date Hired:</label> <?php echo $employee['appointment_start_date'] ?? 'N/A'; ?></div>
-                <div class="form-group"><label>End Date:</label> <?php echo $employee['appointment_end_date'] ?? 'N/A'; ?></div>
+                <div class="form-group"><label>First Name:</label> <?php echo htmlspecialchars($employee['first_name']); ?></div>
+                <div class="form-group"><label>Middle Name:</label> <?php echo htmlspecialchars($employee['middle_name']); ?></div>
+                <div class="form-group"><label>Last Name:</label> <?php echo htmlspecialchars($employee['last_name']); ?></div>
+                <div class="form-group"><label>Name Extension:</label> <?php echo htmlspecialchars($employee['name_extension'] ?? 'N/A'); ?></div>
+                
+                <div class="form-group"><label>Contact Number:</label> <?php echo htmlspecialchars($employee['contactno']); ?></div>
+                <div class="form-group"><label>Email Address:</label> <?php echo htmlspecialchars($employee['email']); ?></div>
+                
+                <div class="form-group"><label>Date of Birth:</label> <?php echo htmlspecialchars($employee['birthdate']); ?></div>
+                <div class="form-group"><label>Place of Birth:</label> <?php echo htmlspecialchars($employee['birth_city'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Province of Birth:</label> <?php echo htmlspecialchars($employee['birth_province'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Country of Birth:</label> <?php echo htmlspecialchars($employee['birth_country'] ?? 'N/A'); ?></div>
+                
+                <div class="form-group"><label>Sex:</label> <?php echo htmlspecialchars($employee['sex']); ?></div>
+                <div class="form-group"><label>Civil Status:</label> <?php echo htmlspecialchars($employee['civil_status']); ?></div>
+                
+                <div class="form-group"><label>Height (m):</label> <?php echo htmlspecialchars($employee['height_in_meter'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Weight (kg):</label> <?php echo htmlspecialchars($employee['weight_in_kg'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Blood Type:</label> <?php echo htmlspecialchars($employee['blood_type'] ?? 'N/A'); ?></div>
+                
+                <div class="form-group"><label>GSIS No.:</label> <?php echo htmlspecialchars($employee['gsis_no'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>SSS No.:</label> <?php echo htmlspecialchars($employee['sss_no'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>PhilHealth No.:</label> <?php echo htmlspecialchars($employee['philhealthno'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>TIN:</label> <?php echo htmlspecialchars($employee['tin'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Citizenship:</label> <?php echo htmlspecialchars($employee['citizenship'] ?? 'N/A'); ?></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Addresses</h3>
+            <h4>Residential</h4>
+            <div class="form-grid">
+                <div class="form-group"><label>House/Block/Lot:</label> <?php echo htmlspecialchars($employee['res_spec_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Street:</label> <?php echo htmlspecialchars($employee['res_street_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Village:</label> <?php echo htmlspecialchars($employee['res_vill_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Barangay:</label> <?php echo htmlspecialchars($employee['res_barangay_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>City/Mun:</label> <?php echo htmlspecialchars($employee['res_city'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Province:</label> <?php echo htmlspecialchars($employee['res_province'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Zip Code:</label> <?php echo htmlspecialchars($employee['res_zipcode'] ?? 'N/A'); ?></div>
+            </div>
+            <h4>Permanent</h4>
+            <div class="form-grid">
+                <div class="form-group"><label>House/Block/Lot:</label> <?php echo htmlspecialchars($employee['perm_spec_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Street:</label> <?php echo htmlspecialchars($employee['perm_street_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Village:</label> <?php echo htmlspecialchars($employee['perm_vill_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Barangay:</label> <?php echo htmlspecialchars($employee['perm_barangay_address'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>City/Mun:</label> <?php echo htmlspecialchars($employee['perm_city'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Province:</label> <?php echo htmlspecialchars($employee['perm_province'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Zip Code:</label> <?php echo htmlspecialchars($employee['perm_zipcode'] ?? 'N/A'); ?></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Employment Details</h3>
+            <div class="form-grid">
+                <div class="form-group"><label>Department:</label> <?php echo htmlspecialchars($employee['dept_name'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Position:</label> <?php echo htmlspecialchars($employee['job_category'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Monthly Salary:</label> <?php echo isset($employee['monthly_salary']) ? number_format($employee['monthly_salary'], 2) : 'N/A'; ?></div>
+                <div class="form-group"><label>Contract Type:</label> <?php echo htmlspecialchars($employee['contract_classification'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>Date Hired / Start Date:</label> <?php echo htmlspecialchars($employee['appointment_start_date'] ?? 'N/A'); ?></div>
+                <div class="form-group"><label>End of Contract / End Date:</label> <?php echo htmlspecialchars($employee['appointment_end_date'] ?? 'N/A'); ?></div>
             </div>
         </div>
 
@@ -115,9 +167,9 @@ $relatives = $stmt_rel->get_result();
                 <tbody>
                     <?php while($row = $education->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo $row['institution_name']; ?></td>
-                            <td><?php echo $row['Education_degree']; ?></td>
-                            <td><?php echo $row['year_graduated']; ?></td>
+                            <td><?php echo htmlspecialchars($row['institution_name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['Education_degree']); ?></td>
+                            <td><?php echo htmlspecialchars($row['year_graduated']); ?></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -137,9 +189,9 @@ $relatives = $stmt_rel->get_result();
                 <tbody>
                     <?php while($row = $relatives->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo $row['first_name'] . ' ' . $row['last_name']; ?></td>
-                            <td><?php echo $row['relationship']; ?></td>
-                            <td><?php echo $row['telephone']; ?></td>
+                            <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['relationship']); ?></td>
+                            <td><?php echo htmlspecialchars($row['telephone']); ?></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
